@@ -43,7 +43,7 @@ const versionSchema = new mongoose.Schema(
     },
     blockchainStatus: {
       type: String,
-      enum: ["PENDING", "STORED"],
+      enum: ["PENDING", "STORED", "FAILED", "NOT_CONFIGURED"],
       default: "PENDING"
     }
   },

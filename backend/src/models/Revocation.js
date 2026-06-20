@@ -30,6 +30,11 @@ const revocationSchema = new mongoose.Schema(
     blockchainTxHash: {
       type: String,
       default: null
+    },
+    blockchainStatus: {
+      type: String,
+      enum: ["PENDING", "STORED", "FAILED", "NOT_CONFIGURED"],
+      default: "PENDING"
     }
   },
   {

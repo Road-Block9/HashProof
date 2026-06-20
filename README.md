@@ -85,6 +85,8 @@ React frontend pages:
 
 ### Module 3: Blockchain Smart Contract
 
+Status: Completed
+
 Solidity contract to store:
 
 - `docId`
@@ -94,12 +96,18 @@ Solidity contract to store:
 - revoked status
 - revocation reason hash or reason reference
 
+Implemented with Hardhat in `blockchain/`. Backend integration is planned for Module 4.
+
 ### Module 4: Backend-Blockchain Integration
+
+Status: Completed
 
 Backend will call the smart contract after MongoDB operations and update:
 
 - `blockchainTxHash`
 - `blockchainStatus`
+
+MongoDB remains the primary database. Blockchain is used as an integrity proof layer through ethers.js and the local Hardhat `DocumentRegistry` contract.
 
 ### Module 5: Final Dashboard and Research Paper Support
 
@@ -127,6 +135,9 @@ document-auth-system/
 |   |   |-- components/
 |   |   |-- pages/
 |-- blockchain/
+|   |-- contracts/
+|   |-- scripts/
+|   |-- test/
 |-- PROJECT_CONTEXT.md
 |-- README.md
 ```
@@ -158,4 +169,13 @@ Create `frontend/.env` before running:
 
 ```env
 VITE_API_BASE_URL=http://localhost:5000
+```
+
+## Run Module 3
+
+```bash
+cd blockchain
+npm install
+npm run compile
+npm test
 ```

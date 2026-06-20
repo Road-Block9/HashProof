@@ -51,7 +51,10 @@ Blockchain planned:
 document-auth-system/
 |-- backend/
 |   |-- src/
+|   |   |-- blockchain/
+|   |   |   |-- DocumentRegistryABI.json
 |   |   |-- config/
+|   |   |   |-- blockchain.js
 |   |   |   |-- db.js
 |   |   |-- controllers/
 |   |   |   |-- documentController.js
@@ -63,6 +66,8 @@ document-auth-system/
 |   |   |   |-- Revocation.js
 |   |   |-- routes/
 |   |   |   |-- documentRoutes.js
+|   |   |-- services/
+|   |   |   |-- blockchainService.js
 |   |   |-- utils/
 |   |   |   |-- hashFile.js
 |   |   |-- app.js
@@ -106,6 +111,17 @@ document-auth-system/
 |   |-- vite.config.js
 |   |-- README.md
 |-- blockchain/
+|   |-- contracts/
+|   |   |-- DocumentRegistry.sol
+|   |-- scripts/
+|   |   |-- deploy.js
+|   |-- test/
+|   |   |-- DocumentRegistry.test.js
+|   |-- hardhat.config.js
+|   |-- package.json
+|   |-- pnpm-lock.yaml
+|   |-- pnpm-workspace.yaml
+|   |-- README.md
 |-- .gitignore
 |-- PROJECT_CONTEXT.md
 |-- README.md
@@ -175,18 +191,51 @@ Implemented:
 - `frontend/pnpm-workspace.yaml` allows the required `esbuild` build script for Vite in this pnpm version.
 - Production build was verified successfully with `pnpm run build`.
 
+### Module 3: Blockchain Smart Contract
+
+Completed on: 2026-06-20
+
+Implemented:
+
+- Hardhat project scaffold in `blockchain/`.
+- Solidity contract `DocumentRegistry`.
+- Document hash registration on-chain.
+- Version tracking for multiple versions per `docId`.
+- Revocation management with reason, revoker address, and timestamp.
+- Public blockchain verification by `docId` and `fileHash`.
+- Contract rejects new version registration after revocation.
+- Deployment script in `scripts/deploy.js`.
+- Test suite in `test/DocumentRegistry.test.js`.
+- Blockchain README with install, compile, test, deploy, and function explanations.
+- Contract compilation verified successfully.
+- Hardhat test suite verified successfully with 8 passing tests.
+- `blockchain/pnpm-workspace.yaml` allows required native crypto helper builds for `keccak` and `secp256k1`.
+
+Important: Module 3 created the smart contract only. Module 4 now connects the backend to this contract using ethers.js.
+
+### Module 4: Backend + Blockchain Integration
+
+Completed on: 2026-06-20
+
+Implemented:
+
+- Added ethers.js to backend dependencies.
+- Added `backend/src/config/blockchain.js`.
+- Added `backend/src/services/blockchainService.js`.
+- Added local ABI copy at `backend/src/blockchain/DocumentRegistryABI.json`.
+- Added backend environment variables for local Hardhat integration.
+- Upload Document API registers version 1 on-chain when blockchain is configured.
+- Upload New Version API registers the new version on-chain when blockchain is configured.
+- Revoke Document API calls the smart contract revoke function when blockchain is configured.
+- Version records store `blockchainTxHash` and `blockchainStatus`.
+- Revocation records store `blockchainTxHash` and `blockchainStatus`.
+- Verify Document API keeps MongoDB verification as primary and includes optional `blockchainVerification`.
+- Added `GET /api/documents/blockchain/status` helper route.
+- Blockchain node/config errors are handled safely without crashing the backend.
+
+Important: MongoDB remains the primary application database. Blockchain is used as an integrity proof layer.
+
 ## 5. Pending Modules
-
-Module 3: Blockchain smart contract
-
-- Store document hash and version data on-chain
-- Store or reference revocation status
-
-Module 4: Backend-blockchain integration
-
-- Use ethers.js from backend
-- Update `blockchainTxHash`
-- Update `blockchainStatus`
 
 Module 5: Final verification dashboard and research paper support
 
@@ -211,6 +260,7 @@ GET  /api/documents/:docId
 GET  /api/documents/:docId/versions
 POST /api/documents/:docId/revoke
 POST /api/documents/verify
+GET  /api/documents/blockchain/status
 ```
 
 Health route:
@@ -253,7 +303,7 @@ Fields:
 - `mimeType`: string
 - `hash`: SHA-256 hash string
 - `blockchainTxHash`: optional string, currently null
-- `blockchainStatus`: enum `PENDING`, `STORED`, default `PENDING`
+- `blockchainStatus`: enum `PENDING`, `STORED`, `FAILED`, `NOT_CONFIGURED`, default `PENDING`
 - timestamps
 
 ### Revocation
@@ -268,6 +318,7 @@ Fields:
 - `revokedBy`: string
 - `revokedAt`: Date
 - `blockchainTxHash`: optional string, currently null
+- `blockchainStatus`: enum `PENDING`, `STORED`, `FAILED`, `NOT_CONFIGURED`, default `PENDING`
 - timestamps
 
 ## 8. Environment Variables Used
@@ -277,6 +328,9 @@ Defined in `backend/.env.example`:
 ```env
 PORT=5000
 MONGO_URI=your_mongodb_connection_string
+BLOCKCHAIN_RPC_URL=http://127.0.0.1:8545
+PRIVATE_KEY=your_local_hardhat_private_key
+CONTRACT_ADDRESS=your_deployed_contract_address
 ```
 
 Defined in `frontend/.env.example`:
@@ -291,7 +345,7 @@ Actual `.env` file is not created with secrets and should not be committed.
 
 - Local storage is used in Module 1 for uploaded PDFs.
 - `filePath` is kept generic so it can later store a Cloudinary secure URL.
-- Blockchain fields are included now but not used yet:
+- Blockchain fields are used by backend-blockchain integration:
   - `blockchainTxHash`
   - `blockchainStatus`
 - Version tracking is implemented through a separate `Version` collection.
@@ -312,6 +366,15 @@ Actual `.env` file is not created with secrets and should not be committed.
 - Frontend does not add authentication, blockchain integration, or fake blockchain data.
 - Frontend displays backend `blockchainStatus` exactly as returned by the backend.
 - Frontend keeps API calls in `src/api/documentApi.js` so pages remain simple.
+- Smart contract keeps strings for `docId` and `fileHash` to make the project easy to explain.
+- Smart contract allows any address to register or revoke for now; admin authentication is future scope.
+- Smart contract stores version details in a mapping from `docId` to an array of versions.
+- Smart contract stores revocation details in a mapping from `docId` to revocation data.
+- Backend now integrates with the local Hardhat `DocumentRegistry` smart contract through ethers.js.
+- The backend uses a copied ABI JSON file rather than reading Hardhat artifacts at runtime, which keeps deployment explanation simple.
+- If `CONTRACT_ADDRESS`, `PRIVATE_KEY`, or `BLOCKCHAIN_RPC_URL` is missing, blockchain calls are skipped safely and marked `NOT_CONFIGURED`.
+- If the blockchain node is down or a transaction fails, MongoDB operations still complete and blockchain status is marked `FAILED`.
+- Private keys are read only from environment variables and are never returned in API responses.
 
 ## 10. Known Issues or Bugs
 
@@ -319,12 +382,15 @@ Actual `.env` file is not created with secrets and should not be committed.
 - Dependencies were installed in this workspace using bundled `pnpm`, which created `backend/pnpm-lock.yaml` and `backend/node_modules/`. On a normal system with Node.js installed, `npm install` can also be used from `backend/`.
 - Frontend dependencies may need to be installed with `npm install` inside `frontend/`.
 - Frontend build output is ignored via `frontend/dist/`.
+- Blockchain build output is ignored via `blockchain/artifacts/` and `blockchain/cache/`.
+- Blockchain dependencies may need to be installed with `npm install` inside `blockchain/`.
 - A valid MongoDB URI must be added in `backend/.env` before running the server.
+- To enable blockchain integration, `BLOCKCHAIN_RPC_URL`, `PRIVATE_KEY`, and `CONTRACT_ADDRESS` must be added in `backend/.env`.
 - A valid frontend API base URL must be added in `frontend/.env`.
 - There is no authentication or role-based access yet.
-- There is no blockchain integration yet.
+- Frontend does not yet display all Module 4 blockchain details in a dedicated UI.
 - There is no Cloudinary integration yet.
 
 ## 11. Next Recommended Task
 
-Next recommended task: Manually test Module 1 + Module 2 together, then start Module 3, the Solidity smart contract.
+Next recommended task: Manually test full upload/version/revoke flow with a local Hardhat node, then improve frontend display for blockchain transaction details if needed.

@@ -10,3 +10,6 @@ backend/uploads/*
 frontend/node_modules/
 frontend/.env
 frontend/dist/
+blockchain/node_modules/
+blockchain/artifacts/
+blockchain/cache/

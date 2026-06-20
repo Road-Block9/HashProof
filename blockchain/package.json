@@ -1,0 +1,15 @@
+{
+  "name": "document-auth-blockchain",
+  "version": "1.0.0",
+  "description": "Hardhat smart contract module for document authentication, version tracking, and revocation",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "deploy": "hardhat run scripts/deploy.js --network localhost"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-ethers": "3.0.8",
+    "ethers": "6.13.5",
+    "hardhat": "2.22.19"
+  }
+}

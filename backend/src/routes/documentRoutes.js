@@ -5,7 +5,8 @@ const {
   getDocumentDetails,
   getVersionHistory,
   revokeDocument,
-  verifyDocument
+  verifyDocument,
+  getBlockchainStatus
 } = require("../controllers/documentController");
 const upload = require("../middleware/uploadMiddleware");
 
@@ -13,6 +14,7 @@ const router = express.Router();
 
 router.post("/upload", upload.single("file"), uploadDocument);
 router.post("/verify", upload.single("file"), verifyDocument);
+router.get("/blockchain/status", getBlockchainStatus);
 router.post("/:docId/versions", upload.single("file"), uploadNewVersion);
 router.get("/:docId", getDocumentDetails);
 router.get("/:docId/versions", getVersionHistory);

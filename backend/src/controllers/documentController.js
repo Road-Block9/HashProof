@@ -2,6 +2,7 @@ const Document = require("../models/Document");
 const Version = require("../models/Version");
 const Revocation = require("../models/Revocation");
 const hashFile = require("../utils/hashFile");
+const blockchainService = require("../services/blockchainService");
 const fs = require("fs/promises");
 
 const generateDocId = () => {
@@ -31,6 +32,23 @@ const deleteUploadedFile = async (file) => {
   } catch (error) {
     console.error("Failed to delete uploaded file:", error.message);
   }
+};
+
+const syncVersionWithBlockchain = async (version) => {
+  const blockchainResult = await blockchainService.registerDocumentVersion({
+    docId: version.docId,
+    fileHash: version.hash,
+    versionNumber: version.versionNumber
+  });
+
+  version.blockchainStatus = blockchainResult.status;
+
+  if (blockchainResult.txHash) {
+    version.blockchainTxHash = blockchainResult.txHash;
+  }
+
+  await version.save();
+  return blockchainResult;
 };
 
 const uploadDocument = async (req, res, next) => {
@@ -73,7 +91,13 @@ const uploadDocument = async (req, res, next) => {
     document.latestVersionId = version._id;
     await document.save();
 
-    return sendResponse(res, 201, true, "Document uploaded successfully", { document, version });
+    const blockchain = await syncVersionWithBlockchain(version);
+
+    return sendResponse(res, 201, true, "Document uploaded successfully", {
+      document,
+      version,
+      blockchain
+    });
   } catch (error) {
     next(error);
   }
@@ -134,7 +158,13 @@ const uploadNewVersion = async (req, res, next) => {
     document.latestVersionId = version._id;
     await document.save();
 
-    return sendResponse(res, 201, true, "New document version uploaded successfully", { document, version });
+    const blockchain = await syncVersionWithBlockchain(version);
+
+    return sendResponse(res, 201, true, "New document version uploaded successfully", {
+      document,
+      version,
+      blockchain
+    });
   } catch (error) {
     next(error);
   }
@@ -210,13 +240,28 @@ const revokeDocument = async (req, res, next) => {
       reason,
       revokedBy,
       revokedAt: new Date(),
-      blockchainTxHash: null
+      blockchainTxHash: null,
+      blockchainStatus: "PENDING"
     });
 
     document.status = "REVOKED";
     await document.save();
 
-    return sendResponse(res, 200, true, "Document revoked successfully", { document, revocation });
+    const blockchain = await blockchainService.revokeDocument({ docId, reason });
+
+    revocation.blockchainStatus = blockchain.status;
+
+    if (blockchain.txHash) {
+      revocation.blockchainTxHash = blockchain.txHash;
+    }
+
+    await revocation.save();
+
+    return sendResponse(res, 200, true, "Document revoked successfully", {
+      document,
+      revocation,
+      blockchain
+    });
   } catch (error) {
     next(error);
   }
@@ -238,12 +283,17 @@ const verifyDocument = async (req, res, next) => {
     const document = await Document.findOne({ docId });
     const uploadedHash = await hashFile(req.file.path);
     await deleteUploadedFile(req.file);
+    const blockchainVerification = await blockchainService.verifyDocument({
+      docId,
+      fileHash: uploadedHash
+    });
 
     if (!document) {
       return sendResponse(res, 200, true, "Document verification completed", {
         status: "INVALID_DOCUMENT_ID",
         isValid: false,
-        uploadedHash
+        uploadedHash,
+        blockchainVerification
       });
     }
 
@@ -254,7 +304,8 @@ const verifyDocument = async (req, res, next) => {
       return sendResponse(res, 200, true, "Document verification completed", {
         status: "TAMPERED_OR_UNKNOWN",
         isValid: false,
-        uploadedHash
+        uploadedHash,
+        blockchainVerification
       });
     }
 
@@ -265,7 +316,8 @@ const verifyDocument = async (req, res, next) => {
         status: "REVOKED",
         isValid: false,
         matchedVersion,
-        revocation
+        revocation,
+        blockchainVerification
       });
     }
 
@@ -275,10 +327,21 @@ const verifyDocument = async (req, res, next) => {
       status: isLatestVersion ? "VALID_LATEST_VERSION" : "VALID_OLD_VERSION",
       isValid: true,
       matchedVersion,
-      document
+      document,
+      blockchainVerification
     });
   } catch (error) {
     await deleteUploadedFile(req.file);
+    next(error);
+  }
+};
+
+const getBlockchainStatus = async (req, res, next) => {
+  try {
+    const status = await blockchainService.getStatus();
+
+    return sendResponse(res, 200, true, "Blockchain status fetched successfully", status);
+  } catch (error) {
     next(error);
   }
 };
@@ -289,5 +352,6 @@ module.exports = {
   getDocumentDetails,
   getVersionHistory,
   revokeDocument,
-  verifyDocument
+  verifyDocument,
+  getBlockchainStatus
 };
