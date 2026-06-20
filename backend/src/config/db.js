@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const dns = require("dns");
 
 const connectDB = async () => {
   try {
@@ -6,6 +7,12 @@ const connectDB = async () => {
 
     if (!mongoUri) {
       throw new Error("MONGO_URI is missing in environment variables");
+    }
+
+    dns.setServers(["8.8.8.8", "1.1.1.1"]);
+
+    if (typeof dns.setDefaultResultOrder === "function") {
+      dns.setDefaultResultOrder("ipv4first");
     }
 
     await mongoose.connect(mongoUri);

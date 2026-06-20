@@ -150,6 +150,7 @@ Implemented:
 - Rejected new-version uploads are deleted if the document is missing, revoked, or identical to the latest version.
 - All API responses now follow `{ success, message, data }`.
 - Backend README includes Postman or Thunder Client examples for all routes.
+- Local DNS fallback added before MongoDB connection for MongoDB Atlas SRV resolution issues on some networks.
 
 ### Module 2: React Frontend
 
@@ -304,6 +305,8 @@ Actual `.env` file is not created with secrets and should not be committed.
 - Duplicate revocation requests return an error and do not create another `Revocation` record.
 - Public document IDs use the generated `docId` format, such as `DOC-MABC123-XYZ789`; MongoDB `_id` is not used as the public verification ID.
 - Every API response uses the same envelope: `{ success, message, data }`.
+- Backend sets Node DNS servers to `8.8.8.8` and `1.1.1.1` before `mongoose.connect` to handle local MongoDB Atlas SRV resolution issues on some networks.
+- Backend uses `dns.setDefaultResultOrder("ipv4first")` when supported by the local Node.js version.
 - No authentication is included in Module 1 to keep the implementation simple.
 - Frontend reads backend base URL from `VITE_API_BASE_URL`.
 - Frontend does not add authentication, blockchain integration, or fake blockchain data.
