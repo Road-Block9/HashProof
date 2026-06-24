@@ -7,6 +7,7 @@ import VerifyDocumentPage from "./pages/VerifyDocumentPage.jsx";
 import VersionHistoryPage from "./pages/VersionHistoryPage.jsx";
 import RevokeDocumentPage from "./pages/RevokeDocumentPage.jsx";
 import DocumentDetailsPage from "./pages/DocumentDetailsPage.jsx";
+import BlockchainStatusPage from "./pages/BlockchainStatusPage.jsx";
 
 const App = () => {
   return (
@@ -19,6 +20,7 @@ const App = () => {
         <Route path="/versions" element={<VersionHistoryPage />} />
         <Route path="/revoke" element={<RevokeDocumentPage />} />
         <Route path="/details" element={<DocumentDetailsPage />} />
+        <Route path="/blockchain-status" element={<BlockchainStatusPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Layout>

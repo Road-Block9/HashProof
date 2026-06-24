@@ -3,6 +3,10 @@ import { revokeDocument } from "../api/documentApi.js";
 import FormField from "../components/FormField.jsx";
 import LoadingButton from "../components/LoadingButton.jsx";
 import StatusMessage from "../components/StatusMessage.jsx";
+import BlockchainBadge from "../components/BlockchainBadge.jsx";
+import CopyButton from "../components/CopyButton.jsx";
+
+const shortValue = (value) => (value ? `${value.slice(0, 12)}...${value.slice(-8)}` : "Not available");
 
 const RevokeDocumentPage = () => {
   const [docId, setDocId] = useState("");
@@ -31,23 +35,23 @@ const RevokeDocumentPage = () => {
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_0.8fr]">
-      <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-        <h1 className="text-2xl font-bold text-ink">Revoke Document</h1>
-        <p className="mt-2 text-sm text-slate-600">
+      <section className="app-card">
+        <h1 className="page-title">Revoke Document</h1>
+        <p className="muted-text mt-2">
           Revoke an issued document with a clear reason. Revoked documents cannot receive new versions.
         </p>
 
         <form onSubmit={handleSubmit} className="mt-6 grid gap-4">
           <FormField label="docId">
-            <input className="w-full rounded-md border border-slate-300 px-3 py-2" value={docId} onChange={(event) => setDocId(event.target.value)} placeholder="DOC-..." required />
+            <input className="app-input" value={docId} onChange={(event) => setDocId(event.target.value)} placeholder="DOC-..." required />
           </FormField>
           <FormField label="Reason">
-            <textarea className="min-h-24 w-full rounded-md border border-slate-300 px-3 py-2" value={reason} onChange={(event) => setReason(event.target.value)} required />
+            <textarea className="app-input min-h-24" value={reason} onChange={(event) => setReason(event.target.value)} required />
           </FormField>
           <FormField label="Revoked By">
-            <input className="w-full rounded-md border border-slate-300 px-3 py-2" value={revokedBy} onChange={(event) => setRevokedBy(event.target.value)} placeholder="Admin Office" required />
+            <input className="app-input" value={revokedBy} onChange={(event) => setRevokedBy(event.target.value)} placeholder="Admin Office" required />
           </FormField>
-          <LoadingButton loading={loading} type="submit" className="bg-rose-700 hover:bg-rose-800">Revoke Document</LoadingButton>
+          <LoadingButton loading={loading} type="submit" className="from-rose-600 via-red-600 to-pink-700">Revoke Document</LoadingButton>
         </form>
       </section>
 
@@ -55,21 +59,34 @@ const RevokeDocumentPage = () => {
         <StatusMessage type="warning" message="Once revoked, the backend blocks new version uploads for this document." />
         {message && <StatusMessage type={message.type} message={message.text} />}
         {revocation && (
-          <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-            <h2 className="text-lg font-semibold text-ink">Revocation Details</h2>
+          <div className="app-card">
+            <h2 className="text-lg font-bold text-slate-950">Revocation Details</h2>
             <dl className="mt-4 grid gap-3 text-sm">
               <div>
                 <dt className="text-slate-500">Reason</dt>
-                <dd className="mt-1 font-semibold text-ink">{revocation.reason}</dd>
+                <dd className="mt-1 font-semibold text-slate-950">{revocation.reason}</dd>
               </div>
               <div className="flex justify-between gap-4">
                 <dt className="text-slate-500">Revoked By</dt>
-                <dd className="font-semibold text-ink">{revocation.revokedBy}</dd>
+                <dd className="font-semibold text-slate-950">{revocation.revokedBy}</dd>
               </div>
               <div className="flex justify-between gap-4">
                 <dt className="text-slate-500">Revoked At</dt>
-                <dd className="font-semibold text-ink">{new Date(revocation.revokedAt).toLocaleString()}</dd>
+                <dd className="font-semibold text-slate-950">{new Date(revocation.revokedAt).toLocaleString()}</dd>
               </div>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <dt className="text-slate-500">Blockchain Status</dt>
+                <dd><BlockchainBadge status={revocation.blockchainStatus} /></dd>
+              </div>
+              {revocation.blockchainTxHash && (
+                <div className="grid gap-2">
+                  <dt className="text-slate-500">Transaction Hash</dt>
+                  <dd className="flex flex-wrap items-center gap-2">
+                    <code className="break-all rounded bg-cyan-50 px-2 py-1 text-xs text-cyan-900">{shortValue(revocation.blockchainTxHash)}</code>
+                    <CopyButton value={revocation.blockchainTxHash} label="Copy tx" />
+                  </dd>
+                </div>
+              )}
             </dl>
           </div>
         )}

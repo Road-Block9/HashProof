@@ -83,7 +83,9 @@ document-auth-system/
 |   |   |-- api/
 |   |   |   |-- documentApi.js
 |   |   |-- components/
+|   |   |   |-- BlockchainBadge.jsx
 |   |   |   |-- CopyButton.jsx
+|   |   |   |-- FeatureCard.jsx
 |   |   |   |-- FormField.jsx
 |   |   |   |-- Layout.jsx
 |   |   |   |-- Loader.jsx
@@ -91,6 +93,7 @@ document-auth-system/
 |   |   |   |-- Navbar.jsx
 |   |   |   |-- StatusMessage.jsx
 |   |   |-- pages/
+|   |   |   |-- BlockchainStatusPage.jsx
 |   |   |   |-- DashboardPage.jsx
 |   |   |   |-- DocumentDetailsPage.jsx
 |   |   |   |-- RevokeDocumentPage.jsx
@@ -191,6 +194,44 @@ Implemented:
 - `frontend/pnpm-workspace.yaml` allows the required `esbuild` build script for Vite in this pnpm version.
 - Production build was verified successfully with `pnpm run build`.
 
+### Frontend UI Polish and Branding
+
+Completed on: 2026-06-20
+
+Implemented:
+
+- Frontend brand renamed to `HASHPROOF`.
+- Added tagline: `Blockchain-backed document integrity verification`.
+- Dashboard redesigned as a polished landing page with gradient hero, proof preview card, and colorful feature cards.
+- Academic project title remains visible on the dashboard.
+- Added dashboard and navbar link for Blockchain Status.
+- Added frontend Blockchain Status page connected to `GET /api/documents/blockchain/status`.
+- Added reusable `FeatureCard` and `BlockchainBadge` components.
+- Updated layout, navbar, buttons, status messages, forms, result cards, and table styling with a modern navy/indigo/purple/cyan/emerald theme.
+- No backend or blockchain logic was changed during this UI polish.
+- Dashboard feature grid now uses 6 balanced tiles.
+- Blockchain status is shown through a dynamic hero button.
+
+### Module 5: Final Verification and Cleanup Pass
+
+Completed on: 2026-06-20
+
+Implemented:
+
+- Confirmed the approved HASHPROOF visual theme remains unchanged.
+- Dashboard, Upload Document, Upload New Version, Verify Document, Version History, Revoke Document, Document Details, and Blockchain Status pages remain present.
+- Blockchain status and proof visibility improved where backend data is available:
+  - `blockchainStatus`
+  - `blockchainTxHash`
+  - `blockchainVerification`
+  - RPC/chain id on Blockchain Status page
+- Added transaction hash copy buttons where transaction hashes are displayed.
+- Improved copy button fallback behavior when `navigator.clipboard` is unavailable.
+- Confirmed frontend API helper continues to use `VITE_API_BASE_URL`.
+- Frontend production build verified successfully.
+- Backend import/load check verified successfully.
+- No backend logic or blockchain contract logic was changed in this final cleanup pass.
+
 ### Module 3: Blockchain Smart Contract
 
 Completed on: 2026-06-20
@@ -237,11 +278,7 @@ Important: MongoDB remains the primary application database. Blockchain is used 
 
 ## 5. Pending Modules
 
-Module 5: Final verification dashboard and research paper support
-
-- UI polish
-- Testing screenshots
-- Documentation for report and viva
+No major modules are pending.
 
 ## 6. API Routes Created
 
@@ -366,6 +403,8 @@ Actual `.env` file is not created with secrets and should not be committed.
 - Frontend does not add authentication, blockchain integration, or fake blockchain data.
 - Frontend displays backend `blockchainStatus` exactly as returned by the backend.
 - Frontend keeps API calls in `src/api/documentApi.js` so pages remain simple.
+- Frontend visual brand is `HASHPROOF`, with the academic project title still visible on the dashboard.
+- Module 5 did not redesign the approved UI theme; it only added final proof visibility and cleanup.
 - Smart contract keeps strings for `docId` and `fileHash` to make the project easy to explain.
 - Smart contract allows any address to register or revoke for now; admin authentication is future scope.
 - Smart contract stores version details in a mapping from `docId` to an array of versions.
@@ -388,9 +427,10 @@ Actual `.env` file is not created with secrets and should not be committed.
 - To enable blockchain integration, `BLOCKCHAIN_RPC_URL`, `PRIVATE_KEY`, and `CONTRACT_ADDRESS` must be added in `backend/.env`.
 - A valid frontend API base URL must be added in `frontend/.env`.
 - There is no authentication or role-based access yet.
-- Frontend does not yet display all Module 4 blockchain details in a dedicated UI.
 - There is no Cloudinary integration yet.
+- Authentication and role-based access are still future scope.
+- MetaMask/frontend wallet integration is still future scope.
 
 ## 11. Next Recommended Task
 
-Next recommended task: Manually test full upload/version/revoke flow with a local Hardhat node, then improve frontend display for blockchain transaction details if needed.
+Next recommended task: Run a full manual demo flow with MongoDB Atlas, local Hardhat node, backend, and frontend running together, then capture screenshots for viva/report submission.

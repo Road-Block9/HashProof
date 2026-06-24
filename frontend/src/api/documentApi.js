@@ -63,3 +63,12 @@ export const getDocumentDetails = async (docId) => {
     throw new Error(getErrorMessage(error));
   }
 };
+
+export const getBlockchainStatus = async () => {
+  try {
+    const response = await apiClient.get("/blockchain/status");
+    return response.data;
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+};

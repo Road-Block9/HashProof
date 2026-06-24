@@ -1,8 +1,8 @@
 const styles = {
-  success: "border-emerald-200 bg-emerald-50 text-emerald-800",
-  error: "border-rose-200 bg-rose-50 text-rose-800",
-  info: "border-sky-200 bg-sky-50 text-sky-800",
-  warning: "border-amber-200 bg-amber-50 text-amber-800"
+  success: "border-emerald-200 bg-emerald-50 text-emerald-800 shadow-emerald-900/10",
+  error: "border-rose-200 bg-rose-50 text-rose-800 shadow-rose-900/10",
+  info: "border-cyan-200 bg-cyan-50 text-cyan-800 shadow-cyan-900/10",
+  warning: "border-amber-200 bg-amber-50 text-amber-800 shadow-amber-900/10"
 };
 
 const StatusMessage = ({ type = "info", message }) => {
@@ -11,7 +11,7 @@ const StatusMessage = ({ type = "info", message }) => {
   }
 
   return (
-    <div className={`rounded-lg border px-4 py-3 text-sm font-medium ${styles[type] || styles.info}`}>
+    <div className={`rounded-xl border px-4 py-3 text-sm font-semibold shadow-lg ${styles[type] || styles.info}`}>
       {message}
     </div>
   );

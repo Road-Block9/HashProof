@@ -66,6 +66,15 @@ const uploadDocument = async (req, res, next) => {
 
     const docId = generateDocId();
     const fileHash = await hashFile(req.file.path);
+    const existingVersion = await Version.findOne({ hash: fileHash }).select("docId versionNumber");
+
+    if (existingVersion) {
+      await deleteUploadedFile(req.file);
+      return sendResponse(res, 409, false, "Duplicate document: this file is already registered", {
+        existingDocId: existingVersion.docId,
+        existingVersionNumber: existingVersion.versionNumber
+      });
+    }
 
     const document = await Document.create({
       docId,
@@ -269,29 +278,94 @@ const revokeDocument = async (req, res, next) => {
 
 const verifyDocument = async (req, res, next) => {
   try {
-    const { docId } = req.body;
+    const docId = req.body.docId?.trim();
+    const hasFile = Boolean(req.file);
 
-    if (!docId) {
-      await deleteUploadedFile(req.file);
-      return sendResponse(res, 400, false, "docId is required");
+    if (!docId && !hasFile) {
+      return sendResponse(res, 400, false, "Provide docId, PDF file, or both for verification");
     }
 
-    if (!req.file) {
-      return sendResponse(res, 400, false, "PDF file is required");
+    let uploadedHash = null;
+
+    if (hasFile) {
+      uploadedHash = await hashFile(req.file.path);
+      await deleteUploadedFile(req.file);
+    }
+
+    if (docId && !hasFile) {
+      const document = await Document.findOne({ docId }).populate("latestVersionId");
+
+      if (!document) {
+        return sendResponse(res, 200, true, "Document ID not found", {
+          status: "DOCUMENT_ID_NOT_FOUND",
+          isValid: false,
+          integrityChecked: false
+        });
+      }
+
+      const versions = await Version.find({ docId }).sort({ versionNumber: 1 });
+      const revocation =
+        document.status === "REVOKED" ? await Revocation.findOne({ docId }).sort({ revokedAt: -1 }) : null;
+
+      return sendResponse(res, 200, true, "Document record found, file integrity not checked", {
+        status: document.status === "REVOKED" ? "RECORD_FOUND_REVOKED" : "RECORD_FOUND",
+        isValid: false,
+        integrityChecked: false,
+        note: "Document record found, but file integrity was not checked because no PDF was uploaded.",
+        document,
+        latestVersion: document.latestVersionId,
+        versions,
+        revocation
+      });
+    }
+
+    if (!docId && hasFile) {
+      const matchedVersion = await Version.findOne({ hash: uploadedHash }).sort({ createdAt: -1 });
+
+      if (!matchedVersion) {
+        return sendResponse(res, 200, true, "Document not registered in this system.", {
+          status: "NOT_REGISTERED",
+          isValid: false,
+          integrityChecked: true,
+          uploadedHash
+        });
+      }
+
+      const document = await Document.findOne({ docId: matchedVersion.docId });
+      const versions = await Version.find({ docId: matchedVersion.docId }).sort({ versionNumber: 1 });
+      const revocation =
+        document?.status === "REVOKED" ? await Revocation.findOne({ docId: matchedVersion.docId }).sort({ revokedAt: -1 }) : null;
+      const blockchainVerification = await blockchainService.verifyDocument({
+        docId: matchedVersion.docId,
+        fileHash: uploadedHash
+      });
+      const isLatestVersion = document && matchedVersion.versionNumber === document.currentVersion;
+
+      return sendResponse(res, 200, true, "Registered document found", {
+        status: document?.status === "REVOKED" ? "REVOKED" : isLatestVersion ? "VALID_LATEST_VERSION" : "VALID_OLD_VERSION",
+        isValid: Boolean(document && document.status !== "REVOKED"),
+        integrityChecked: true,
+        matchedDocId: matchedVersion.docId,
+        uploadedHash,
+        matchedVersion,
+        document,
+        versions,
+        revocation,
+        blockchainVerification
+      });
     }
 
     const document = await Document.findOne({ docId });
-    const uploadedHash = await hashFile(req.file.path);
-    await deleteUploadedFile(req.file);
     const blockchainVerification = await blockchainService.verifyDocument({
       docId,
       fileHash: uploadedHash
     });
 
     if (!document) {
-      return sendResponse(res, 200, true, "Document verification completed", {
+      return sendResponse(res, 200, true, "Document ID not found", {
         status: "INVALID_DOCUMENT_ID",
         isValid: false,
+        integrityChecked: true,
         uploadedHash,
         blockchainVerification
       });
@@ -301,9 +375,10 @@ const verifyDocument = async (req, res, next) => {
     const matchedVersion = versions.find((version) => version.hash === uploadedHash);
 
     if (!matchedVersion) {
-      return sendResponse(res, 200, true, "Document verification completed", {
+      return sendResponse(res, 200, true, "File does not match registered document", {
         status: "TAMPERED_OR_UNKNOWN",
         isValid: false,
+        integrityChecked: true,
         uploadedHash,
         blockchainVerification
       });
@@ -312,9 +387,10 @@ const verifyDocument = async (req, res, next) => {
     if (document.status === "REVOKED") {
       const revocation = await Revocation.findOne({ docId }).sort({ revokedAt: -1 });
 
-      return sendResponse(res, 200, true, "Document verification completed", {
+      return sendResponse(res, 200, true, "Document is revoked", {
         status: "REVOKED",
         isValid: false,
+        integrityChecked: true,
         matchedVersion,
         revocation,
         blockchainVerification
@@ -323,9 +399,10 @@ const verifyDocument = async (req, res, next) => {
 
     const isLatestVersion = matchedVersion.versionNumber === document.currentVersion;
 
-    return sendResponse(res, 200, true, "Document verification completed", {
+    return sendResponse(res, 200, true, "Document verified successfully", {
       status: isLatestVersion ? "VALID_LATEST_VERSION" : "VALID_OLD_VERSION",
       isValid: true,
+      integrityChecked: true,
       matchedVersion,
       document,
       blockchainVerification

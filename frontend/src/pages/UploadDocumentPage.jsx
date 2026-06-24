@@ -4,6 +4,9 @@ import CopyButton from "../components/CopyButton.jsx";
 import FormField from "../components/FormField.jsx";
 import LoadingButton from "../components/LoadingButton.jsx";
 import StatusMessage from "../components/StatusMessage.jsx";
+import BlockchainBadge from "../components/BlockchainBadge.jsx";
+
+const shortValue = (value) => (value ? `${value.slice(0, 12)}...${value.slice(-8)}` : "Not available");
 
 const UploadDocumentPage = () => {
   const [form, setForm] = useState({
@@ -47,35 +50,36 @@ const UploadDocumentPage = () => {
   };
 
   const docId = result?.document?.docId;
+  const version = result?.version;
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_0.8fr]">
-      <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-        <h1 className="text-2xl font-bold text-ink">Upload Document</h1>
-        <p className="mt-2 text-sm text-slate-600">
+      <section className="app-card">
+        <h1 className="page-title">Upload Document</h1>
+        <p className="muted-text mt-2">
           Upload the first PDF version. The backend will generate a public docId and SHA-256 hash.
         </p>
 
         <form onSubmit={handleSubmit} className="mt-6 grid gap-4">
           <FormField label="Title">
-            <input className="w-full rounded-md border border-slate-300 px-3 py-2" name="title" value={form.title} onChange={updateField} required />
+            <input className="app-input" name="title" value={form.title} onChange={updateField} required />
           </FormField>
           <FormField label="Description">
-            <textarea className="min-h-24 w-full rounded-md border border-slate-300 px-3 py-2" name="description" value={form.description} onChange={updateField} />
+            <textarea className="app-input min-h-24" name="description" value={form.description} onChange={updateField} />
           </FormField>
           <div className="grid gap-4 md:grid-cols-2">
             <FormField label="Issuer Name">
-              <input className="w-full rounded-md border border-slate-300 px-3 py-2" name="issuerName" value={form.issuerName} onChange={updateField} required />
+              <input className="app-input" name="issuerName" value={form.issuerName} onChange={updateField} required />
             </FormField>
             <FormField label="Owner Name">
-              <input className="w-full rounded-md border border-slate-300 px-3 py-2" name="ownerName" value={form.ownerName} onChange={updateField} required />
+              <input className="app-input" name="ownerName" value={form.ownerName} onChange={updateField} required />
             </FormField>
           </div>
           <FormField label="Owner Email">
-            <input className="w-full rounded-md border border-slate-300 px-3 py-2" type="email" name="ownerEmail" value={form.ownerEmail} onChange={updateField} required />
+            <input className="app-input" type="email" name="ownerEmail" value={form.ownerEmail} onChange={updateField} required />
           </FormField>
           <FormField label="PDF File" hint="Only PDF files are accepted by the backend.">
-            <input className="w-full rounded-md border border-slate-300 px-3 py-2" type="file" accept="application/pdf" onChange={(event) => setFile(event.target.files[0])} required />
+            <input className="app-input" type="file" accept="application/pdf" onChange={(event) => setFile(event.target.files[0])} required />
           </FormField>
           <LoadingButton loading={loading} type="submit">Upload Document</LoadingButton>
         </form>
@@ -84,15 +88,30 @@ const UploadDocumentPage = () => {
       <aside className="space-y-4">
         {message && <StatusMessage type={message.type} message={message.text} />}
         {docId && (
-          <div className="rounded-lg border border-emerald-200 bg-white p-5 shadow-sm">
-            <h2 className="text-lg font-semibold text-ink">Generated docId</h2>
-            <div className="mt-3 flex flex-wrap items-center gap-3 rounded-md bg-slate-50 p-3">
+          <div className="app-card border-emerald-200">
+            <h2 className="text-lg font-bold text-slate-950">Generated docId</h2>
+            <div className="mt-3 flex flex-wrap items-center gap-3 rounded-xl bg-emerald-50 p-3">
               <code className="break-all text-sm font-semibold text-brand">{docId}</code>
               <CopyButton value={docId} />
             </div>
             <p className="mt-3 text-sm leading-6 text-slate-600">
               Copy this docId. It is required for verification, version upload, revocation, and details lookup.
             </p>
+            <dl className="mt-4 grid gap-3 border-t border-slate-100 pt-4 text-sm">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <dt className="text-slate-500">Blockchain Status</dt>
+                <dd><BlockchainBadge status={version?.blockchainStatus} /></dd>
+              </div>
+              {version?.blockchainTxHash && (
+                <div className="grid gap-2">
+                  <dt className="text-slate-500">Transaction Hash</dt>
+                  <dd className="flex flex-wrap items-center gap-2">
+                    <code className="break-all rounded bg-cyan-50 px-2 py-1 text-xs text-cyan-900">{shortValue(version.blockchainTxHash)}</code>
+                    <CopyButton value={version.blockchainTxHash} label="Copy tx" />
+                  </dd>
+                </div>
+              )}
+            </dl>
           </div>
         )}
       </aside>

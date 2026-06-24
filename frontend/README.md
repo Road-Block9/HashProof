@@ -1,6 +1,6 @@
 # Frontend - Document Authentication System
 
-This is Module 2 of the Blockchain-based Document Authentication and Integrity Verification System. It is a React + Vite frontend that connects to the existing Express backend APIs.
+This is Module 2 of the Blockchain-based Document Authentication and Integrity Verification System. The frontend is branded as HASHPROOF and connects to the existing Express backend APIs.
 
 ## Tech Used
 
@@ -62,6 +62,7 @@ Backend API base route:
 /versions         Version History
 /revoke           Revoke Document
 /details          Document Details
+/blockchain-status Blockchain Status
 ```
 
 ## API Connections
@@ -74,6 +75,7 @@ Backend API base route:
 | Version History | `GET /api/documents/:docId/versions` |
 | Revoke Document | `POST /api/documents/:docId/revoke` |
 | Document Details | `GET /api/documents/:docId` |
+| Blockchain Status | `GET /api/documents/blockchain/status` |
 
 ## Manual Testing Flow
 
@@ -93,4 +95,5 @@ Backend API base route:
 
 - No authentication is included in Module 2.
 - No blockchain integration is included in Module 2.
-- No fake blockchain data is added. Existing backend `blockchainStatus` values are displayed exactly as returned.
+- No fake blockchain data is added. Backend `blockchainStatus`, `blockchainTxHash`, and `blockchainVerification` values are displayed exactly as returned.
+- The UI is branded as HASHPROOF and kept demo-ready for final-year project presentation.
