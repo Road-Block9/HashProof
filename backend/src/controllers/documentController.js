@@ -3,6 +3,7 @@ const Version = require("../models/Version");
 const Revocation = require("../models/Revocation");
 const hashFile = require("../utils/hashFile");
 const blockchainService = require("../services/blockchainService");
+const { storeUploadedPdf } = require("../services/fileStorageService");
 const fs = require("fs/promises");
 
 const generateDocId = () => {
@@ -11,11 +12,13 @@ const generateDocId = () => {
   return `DOC-${timestamp}-${random}`;
 };
 
-const buildFileMetadata = (file) => ({
+const buildFileMetadata = (file, storageResult) => ({
   fileName: file.originalname,
-  filePath: file.path,
+  filePath: storageResult.filePath,
   fileSize: file.size,
-  mimeType: file.mimetype
+  mimeType: file.mimetype,
+  storageProvider: storageResult.storageProvider,
+  cloudinaryPublicId: storageResult.cloudinaryPublicId
 });
 
 const sendResponse = (res, statusCode, success, message, data = {}) => {
@@ -66,7 +69,7 @@ const uploadDocument = async (req, res, next) => {
 
     const docId = generateDocId();
     const fileHash = await hashFile(req.file.path);
-    const existingVersion = await Version.findOne({ hash: fileHash }).select("docId versionNumber");
+    const existingVersion = await Version.findOne({ hash: fileHash });
 
     if (existingVersion) {
       await deleteUploadedFile(req.file);
@@ -75,6 +78,8 @@ const uploadDocument = async (req, res, next) => {
         existingVersionNumber: existingVersion.versionNumber
       });
     }
+
+    const storageResult = await storeUploadedPdf(req.file);
 
     const document = await Document.create({
       docId,
@@ -91,7 +96,7 @@ const uploadDocument = async (req, res, next) => {
       document: document._id,
       docId,
       versionNumber: 1,
-      ...buildFileMetadata(req.file),
+      ...buildFileMetadata(req.file, storageResult),
       hash: fileHash,
       blockchainTxHash: null,
       blockchainStatus: "PENDING"
@@ -105,7 +110,15 @@ const uploadDocument = async (req, res, next) => {
     return sendResponse(res, 201, true, "Document uploaded successfully", {
       document,
       version,
-      blockchain
+      blockchain,
+      storage: {
+        provider: storageResult.storageProvider,
+        storageProvider: storageResult.storageProvider,
+        filePath: storageResult.filePath,
+        secureUrl: storageResult.secureUrl || null,
+        cloudinaryPublicId: storageResult.cloudinaryPublicId,
+        message: storageResult.storageMessage
+      }
     });
   } catch (error) {
     next(error);
@@ -143,13 +156,14 @@ const uploadNewVersion = async (req, res, next) => {
       return sendResponse(res, 400, false, "New version file is identical to the latest version");
     }
 
+    const storageResult = await storeUploadedPdf(req.file);
     const nextVersionNumber = document.currentVersion + 1;
 
     const version = await Version.create({
       document: document._id,
       docId,
       versionNumber: nextVersionNumber,
-      ...buildFileMetadata(req.file),
+      ...buildFileMetadata(req.file, storageResult),
       hash: fileHash,
       blockchainTxHash: null,
       blockchainStatus: "PENDING"
@@ -172,7 +186,15 @@ const uploadNewVersion = async (req, res, next) => {
     return sendResponse(res, 201, true, "New document version uploaded successfully", {
       document,
       version,
-      blockchain
+      blockchain,
+      storage: {
+        provider: storageResult.storageProvider,
+        storageProvider: storageResult.storageProvider,
+        filePath: storageResult.filePath,
+        secureUrl: storageResult.secureUrl || null,
+        cloudinaryPublicId: storageResult.cloudinaryPublicId,
+        message: storageResult.storageMessage
+      }
     });
   } catch (error) {
     next(error);

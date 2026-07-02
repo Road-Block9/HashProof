@@ -32,6 +32,15 @@ const versionSchema = new mongoose.Schema(
       type: String,
       required: true
     },
+    storageProvider: {
+      type: String,
+      enum: ["LOCAL", "CLOUDINARY"],
+      default: "LOCAL"
+    },
+    cloudinaryPublicId: {
+      type: String,
+      default: null
+    },
     hash: {
       type: String,
       required: true,

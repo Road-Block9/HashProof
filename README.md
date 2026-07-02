@@ -2,7 +2,7 @@
 
 This project is a final-year web application for authenticating official documents such as certificates, mark sheets, letters, and PDFs. The system generates a SHA-256 hash of each uploaded document and stores metadata for verification, version tracking, and revocation management.
 
-The actual PDF is stored off-chain. In Module 1, files are stored locally. In later modules, storage can be moved to Cloudinary and important integrity data can be stored on blockchain.
+The actual PDF is stored off-chain. The backend supports Cloudinary storage for hosted deployments and local storage fallback for development/demo use. Important integrity data is also stored on blockchain when the local smart contract integration is configured.
 
 ## Main Features
 
@@ -38,8 +38,8 @@ Database:
 
 File Storage:
 
-- Local storage for Module 1
-- Cloudinary planned later
+- Cloudinary when configured
+- Local storage fallback in `backend/uploads/`
 
 Blockchain:
 
@@ -116,6 +116,12 @@ Status: Completed
 Complete frontend verification flow, final testing, screenshots, and documentation useful for viva and research paper writing.
 
 Includes final HASHPROOF UI polish, blockchain status/transaction visibility, and demo-ready frontend pages.
+
+### Cloudinary Storage Support
+
+Status: Completed
+
+The backend uploads permanent document PDFs to Cloudinary when Cloudinary environment variables are configured. If Cloudinary is missing or upload fails, it safely falls back to local storage. Verification uploads remain temporary and are not stored permanently.
 
 ## Current Structure
 

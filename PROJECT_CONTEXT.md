@@ -34,8 +34,8 @@ Database:
 
 File storage:
 
-- Module 1 uses local storage in `backend/uploads/`
-- Cloudinary planned later
+- Cloudinary for hosted deployments when configured
+- Local storage in `backend/uploads/` as fallback for demos/testing
 
 Blockchain planned:
 
@@ -55,6 +55,7 @@ document-auth-system/
 |   |   |   |-- DocumentRegistryABI.json
 |   |   |-- config/
 |   |   |   |-- blockchain.js
+|   |   |   |-- cloudinary.js
 |   |   |   |-- db.js
 |   |   |-- controllers/
 |   |   |   |-- documentController.js
@@ -68,6 +69,7 @@ document-auth-system/
 |   |   |   |-- documentRoutes.js
 |   |   |-- services/
 |   |   |   |-- blockchainService.js
+|   |   |   |-- fileStorageService.js
 |   |   |-- utils/
 |   |   |   |-- hashFile.js
 |   |   |-- app.js
@@ -226,6 +228,7 @@ Implemented:
   - `blockchainVerification`
   - RPC/chain id on Blockchain Status page
 - Added transaction hash copy buttons where transaction hashes are displayed.
+- Cloud storage status is now visible in Upload Document, Upload New Version, and Version History UI.
 - Improved copy button fallback behavior when `navigator.clipboard` is unavailable.
 - Confirmed frontend API helper continues to use `VITE_API_BASE_URL`.
 - Frontend production build verified successfully.
@@ -275,6 +278,27 @@ Implemented:
 - Blockchain node/config errors are handled safely without crashing the backend.
 
 Important: MongoDB remains the primary application database. Blockchain is used as an integrity proof layer.
+
+### Cloudinary Storage Support
+
+Completed on: 2026-06-24
+
+Implemented:
+
+- Added Cloudinary backend dependency.
+- Added `backend/src/config/cloudinary.js` for safe Cloudinary configuration detection.
+- Added `backend/src/services/fileStorageService.js` for Cloudinary upload with local fallback.
+- Added safe backend startup log `Cloudinary configured: true/false`; API secret is never logged.
+- Cloudinary config is checked lazily at upload time so `.env` values are detected reliably.
+- Upload Document API now uploads PDFs to Cloudinary when Cloudinary env variables are present.
+- Upload New Version API now uploads PDFs to Cloudinary when Cloudinary env variables are present.
+- Upload responses include storage provider, file path, secure URL when available, public ID, and storage message.
+- If Cloudinary is missing or upload fails, PDFs continue to be stored locally in `backend/uploads/`.
+- `Version.filePath` now stores either a local file path or Cloudinary secure URL.
+- `Version.storageProvider` records `LOCAL` or `CLOUDINARY`.
+- `Version.cloudinaryPublicId` stores Cloudinary public ID when available.
+- Verification uploads remain temporary and are never uploaded to Cloudinary.
+- Existing MongoDB, blockchain, verification, version, and revocation flows remain unchanged.
 
 ## 5. Pending Modules
 
@@ -338,6 +362,8 @@ Fields:
 - `filePath`: string
 - `fileSize`: number
 - `mimeType`: string
+- `storageProvider`: enum `LOCAL`, `CLOUDINARY`, default `LOCAL`
+- `cloudinaryPublicId`: optional string
 - `hash`: SHA-256 hash string
 - `blockchainTxHash`: optional string, currently null
 - `blockchainStatus`: enum `PENDING`, `STORED`, `FAILED`, `NOT_CONFIGURED`, default `PENDING`
@@ -368,6 +394,9 @@ MONGO_URI=your_mongodb_connection_string
 BLOCKCHAIN_RPC_URL=http://127.0.0.1:8545
 PRIVATE_KEY=your_local_hardhat_private_key
 CONTRACT_ADDRESS=your_deployed_contract_address
+CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
+CLOUDINARY_API_KEY=your_cloudinary_api_key
+CLOUDINARY_API_SECRET=your_cloudinary_api_secret
 ```
 
 Defined in `frontend/.env.example`:
@@ -380,8 +409,10 @@ Actual `.env` file is not created with secrets and should not be committed.
 
 ## 9. Important Implementation Decisions
 
-- Local storage is used in Module 1 for uploaded PDFs.
-- `filePath` is kept generic so it can later store a Cloudinary secure URL.
+- Cloudinary is used for permanent PDF storage when all Cloudinary environment variables are configured.
+- Local storage remains available as fallback when Cloudinary is not configured or Cloudinary upload fails.
+- `filePath` is kept generic and can store either a local path or a Cloudinary secure URL.
+- Verification uploads are temporary only; they are hashed and deleted locally, and are not sent to Cloudinary.
 - Blockchain fields are used by backend-blockchain integration:
   - `blockchainTxHash`
   - `blockchainStatus`
@@ -427,7 +458,6 @@ Actual `.env` file is not created with secrets and should not be committed.
 - To enable blockchain integration, `BLOCKCHAIN_RPC_URL`, `PRIVATE_KEY`, and `CONTRACT_ADDRESS` must be added in `backend/.env`.
 - A valid frontend API base URL must be added in `frontend/.env`.
 - There is no authentication or role-based access yet.
-- There is no Cloudinary integration yet.
 - Authentication and role-based access are still future scope.
 - MetaMask/frontend wallet integration is still future scope.
 

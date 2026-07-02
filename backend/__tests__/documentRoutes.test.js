@@ -163,7 +163,7 @@ describe("Document API", () => {
     expect(response.body.data.revocation.reason).toBe("Certificate was cancelled");
   });
 
-  test.failing("blocks or detects uploading the same file again as a duplicate", async () => {
+  test("blocks or detects uploading the same file again as a duplicate", async () => {
     await uploadDocument();
 
     const response = await uploadDocument({

@@ -12,6 +12,7 @@ This backend is Module 1 of the Blockchain-based Document Authentication and Int
 - dotenv
 - cors
 - ethers.js
+- cloudinary
 - nodemon
 
 ## Setup
@@ -30,6 +31,9 @@ MONGO_URI=your_mongodb_connection_string
 BLOCKCHAIN_RPC_URL=http://127.0.0.1:8545
 PRIVATE_KEY=your_local_hardhat_private_key
 CONTRACT_ADDRESS=your_deployed_contract_address
+CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
+CLOUDINARY_API_KEY=your_cloudinary_api_key
+CLOUDINARY_API_SECRET=your_cloudinary_api_secret
 ```
 
 3. Run the backend:
@@ -101,6 +105,7 @@ Purpose:
 - Creates version `1`
 - Calls `DocumentRegistry.registerDocumentVersion` if blockchain is configured
 - Stores blockchain transaction hash in the version record if the call succeeds
+- Stores the PDF in Cloudinary when Cloudinary is configured, otherwise stores it locally in `backend/uploads/`
 - Generates a clean public `docId` like `DOC-MABC123-XYZ789`; MongoDB `_id` is not used as the public document ID
 
 ### 2. Upload New Version
@@ -136,6 +141,7 @@ Purpose:
 - Updates current version and latest version pointer
 - Calls `DocumentRegistry.registerDocumentVersion` if blockchain is configured
 - Stores blockchain transaction hash in the new version record if the call succeeds
+- Uses Cloudinary storage when configured, with local upload fallback if Cloudinary is missing or upload fails
 
 ### 3. Get Document Details
 
@@ -280,6 +286,33 @@ If blockchain is not configured or the local node is not running:
 - Version or revocation `blockchainStatus` becomes `NOT_CONFIGURED` or `FAILED`.
 - API responses include the blockchain result without exposing private keys.
 
+## Cloudinary Storage Behavior
+
+The backend supports Cloudinary PDF storage for hosted deployments, while keeping local storage for offline demos.
+
+If these environment variables are present:
+
+```env
+CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
+CLOUDINARY_API_KEY=your_cloudinary_api_key
+CLOUDINARY_API_SECRET=your_cloudinary_api_secret
+```
+
+Then Upload Document and Upload New Version will:
+
+- calculate the SHA-256 hash from the temporary local upload
+- upload the PDF to Cloudinary as a raw file
+- save the Cloudinary `secure_url` in `Version.filePath`
+- save the Cloudinary `public_id` in `Version.cloudinaryPublicId`
+- save `Version.storageProvider` as `CLOUDINARY`
+- delete the temporary local file after successful Cloudinary upload
+
+If Cloudinary variables are missing, the backend continues to store files locally in `backend/uploads/` and saves `storageProvider` as `LOCAL`.
+
+If a Cloudinary upload fails, the backend falls back to local storage instead of losing the uploaded PDF. The API response includes a `storage` object showing the provider and message.
+
+Verification uploads are temporary only. They are hashed and deleted locally; they are never uploaded to Cloudinary.
+
 ## Full Local Run With Blockchain
 
 Terminal 1: start local Hardhat node
@@ -314,6 +347,9 @@ MONGO_URI=your_mongodb_connection_string
 BLOCKCHAIN_RPC_URL=http://127.0.0.1:8545
 PRIVATE_KEY=your_local_hardhat_private_key
 CONTRACT_ADDRESS=your_deployed_contract_address
+CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
+CLOUDINARY_API_KEY=your_cloudinary_api_key
+CLOUDINARY_API_SECRET=your_cloudinary_api_secret
 ```
 
 Use one of the local Hardhat private keys printed in Terminal 1. Do not commit the real `.env` file.
@@ -354,7 +390,8 @@ npm run dev
 ## Notes
 
 - Files are stored locally in `backend/uploads/` for Module 1.
+- Cloudinary is supported for hosted deployments; local storage remains the fallback.
 - Verification uploads are not stored permanently.
-- `filePath` is kept generic so Cloudinary URLs can replace local paths later.
+- `filePath` is generic and can contain either a local path or a Cloudinary secure URL.
 - `blockchainTxHash` and `blockchainStatus` are updated when blockchain integration is configured.
 - No authentication is included in Module 1 to keep the foundation simple and explainable.

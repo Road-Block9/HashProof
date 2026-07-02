@@ -54,12 +54,18 @@ const Version = {
     })
   })),
 
-  findOne: jest.fn((query) => ({
-    sort: jest.fn(async (sortBy) => {
-      const matchingVersions = versions.filter((version) => version.docId === query.docId);
-      return sortRecords(matchingVersions, sortBy)[0] || null;
-    })
-  })),
+  findOne: jest.fn((query) => {
+    if (query.hash) {
+      return Promise.resolve(versions.find((version) => version.hash === query.hash) || null);
+    }
+
+    return {
+      sort: jest.fn(async (sortBy) => {
+        const matchingVersions = versions.filter((version) => version.docId === query.docId);
+        return sortRecords(matchingVersions, sortBy)[0] || null;
+      })
+    };
+  }),
 
   findById: jest.fn(async (id) => {
     return versions.find((version) => version._id === id) || null;

@@ -5,6 +5,7 @@ import FormField from "../components/FormField.jsx";
 import LoadingButton from "../components/LoadingButton.jsx";
 import StatusMessage from "../components/StatusMessage.jsx";
 import BlockchainBadge from "../components/BlockchainBadge.jsx";
+import StorageBadge from "../components/StorageBadge.jsx";
 
 const shortHash = (hash) => (hash ? `${hash.slice(0, 12)}...${hash.slice(-8)}` : "Not available");
 const shortValue = (value) => (value ? `${value.slice(0, 12)}...${value.slice(-8)}` : "Not available");
@@ -78,6 +79,7 @@ const VersionHistoryPage = () => {
                   <th className="px-4 py-3">File Name</th>
                   <th className="px-4 py-3">Hash</th>
                   <th className="px-4 py-3">Tx Hash</th>
+                  <th className="px-4 py-3">Storage</th>
                   <th className="px-4 py-3">Upload Date</th>
                   <th className="px-4 py-3">Blockchain Status</th>
                 </tr>
@@ -102,6 +104,14 @@ const VersionHistoryPage = () => {
                       ) : (
                         <span className="text-slate-500">Not available</span>
                       )}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="grid gap-1">
+                        <StorageBadge provider={version.storageProvider} />
+                        {version.storageProvider && (
+                          <span className="text-xs font-semibold text-slate-500">{version.storageProvider}</span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-4 py-3 text-slate-700">{formatDate(version.createdAt)}</td>
                     <td className="px-4 py-3">
