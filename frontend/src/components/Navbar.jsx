@@ -14,34 +14,34 @@ const navItems = [
 
 const Navbar = () => {
   return (
-    <header className="sticky top-0 z-20 border-b border-white/10 bg-slate-950/75 backdrop-blur-xl">
-      <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
-        <Link to="/" className="flex items-center gap-3">
-          <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-400 via-indigo-500 to-purple-600 text-white shadow-lg shadow-cyan-950/40">
-            <ShieldCheck size={24} aria-hidden="true" />
+    <header className="sticky top-0 z-50 px-6 sm:px-8 lg:px-12 py-6">
+      <div className="mx-auto flex w-full flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+        <Link to="/" className="flex items-center gap-3 group">
+          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-cryptoBlack text-white transition-all duration-300 group-hover:rotate-12">
+            <ShieldCheck size={26} aria-hidden="true" />
           </span>
-          <span>
-            <span className="block text-lg font-black tracking-wide text-white">HASHPROOF</span>
-            <span className="block text-xs text-cyan-100">Blockchain-backed document integrity verification</span>
+          <span className="flex flex-col">
+            <span className="block text-2xl font-black tracking-tight text-cryptoBlack">HASHPROOF</span>
           </span>
         </Link>
 
-        <nav className="flex flex-wrap gap-2">
+        <nav className="flex flex-wrap gap-2 items-center">
           {navItems.map((item) => (
             <NavLink
               key={item.path}
               to={item.path}
               className={({ isActive }) =>
-                `rounded-xl px-3 py-2 text-sm font-semibold transition ${
+                `rounded-full px-5 py-2.5 text-sm font-bold transition-all duration-300 ${
                   isActive
-                    ? "bg-white text-indigo-950 shadow-lg shadow-cyan-950/20"
-                    : "text-slate-200 hover:bg-white/10 hover:text-white"
+                    ? "bg-cryptoBlack text-white shadow-lg"
+                    : "text-cryptoBlack hover:bg-black/5"
                 }`
               }
             >
               {item.label}
             </NavLink>
           ))}
+
         </nav>
       </div>
     </header>

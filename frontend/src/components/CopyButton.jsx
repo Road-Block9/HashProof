@@ -30,7 +30,7 @@ const CopyButton = ({ value, label = "Copy" }) => {
     <button
       type="button"
       onClick={copyValue}
-      className="inline-flex items-center gap-1.5 rounded-lg border border-cyan-200 bg-cyan-50 px-2.5 py-1.5 text-xs font-semibold text-cyan-800 transition hover:bg-cyan-100"
+      className="inline-flex items-center gap-2 rounded-lg bg-spaceCard shadow-neo-out px-3 py-1.5 text-xs font-bold text-electricBlue transition-all duration-300 hover:shadow-neo-glow-blue hover:text-white active:shadow-neo-in"
       title={label}
     >
       <Copy size={14} aria-hidden="true" />

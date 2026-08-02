@@ -1,17 +1,22 @@
 import { Link } from "react-router-dom";
 
-const FeatureCard = ({ title, description, path, icon: Icon, gradient }) => {
+const FeatureCard = ({ title, description, path, icon: Icon, rotationClass }) => {
   return (
-    <Link
-      to={path}
-      className="group rounded-2xl border border-white/15 bg-white/90 p-5 shadow-xl shadow-slate-950/10 backdrop-blur transition hover:-translate-y-1 hover:bg-white hover:shadow-2xl"
-    >
-      <span className={`flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br ${gradient} text-white shadow-lg transition group-hover:scale-105`}>
-        <Icon size={23} aria-hidden="true" />
-      </span>
-      <h2 className="mt-4 text-lg font-bold text-slate-950">{title}</h2>
-      <p className="mt-2 text-sm leading-6 text-slate-600">{description}</p>
-    </Link>
+    <div className={`transition-all duration-500 hover:scale-105 hover:z-20 animate-floating ${rotationClass || ''}`}>
+      <Link
+        to={path}
+        className="group flex flex-col items-center text-center rounded-[32px] bg-white p-8 shadow-crypto-card transition-all duration-300"
+      >
+        <span className={`flex h-16 w-16 items-center justify-center rounded-2xl bg-cryptoBlack text-white transition-all duration-300 group-hover:bg-cryptoYellow group-hover:text-cryptoBlack group-hover:-translate-y-2`}>
+          <Icon size={32} aria-hidden="true" />
+        </span>
+        <h2 className="mt-6 text-xl font-bold text-cryptoBlack">{title}</h2>
+        <p className="mt-4 text-sm font-medium leading-relaxed text-slate-500">{description}</p>
+        <span className="mt-6 btn-pill text-sm w-full group-hover:bg-cryptoYellow group-hover:text-cryptoBlack">
+          Launch
+        </span>
+      </Link>
+    </div>
   );
 };
 

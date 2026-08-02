@@ -2,9 +2,9 @@ const StorageBadge = ({ provider }) => {
   const normalizedProvider = provider || "NOT_AVAILABLE";
 
   const styles = {
-    CLOUDINARY: "border-cyan-200 bg-cyan-50 text-cyan-800",
-    LOCAL: "border-orange-200 bg-orange-50 text-orange-800",
-    NOT_AVAILABLE: "border-slate-200 bg-slate-100 text-slate-600"
+    CLOUDINARY: "border-electricBlue bg-electricBlue/10 text-electricBlue shadow-[0_0_8px_rgba(0,240,255,0.3)]",
+    LOCAL: "border-neonPurple bg-neonPurple/10 text-neonPurple shadow-[0_0_8px_rgba(176,38,255,0.3)]",
+    NOT_AVAILABLE: "border-slate-500 bg-slate-500/10 text-slate-400"
   };
 
   const labels = {
@@ -15,7 +15,7 @@ const StorageBadge = ({ provider }) => {
 
   return (
     <span
-      className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-bold uppercase tracking-wide ${
+      className={`inline-flex rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-wide ${
         styles[normalizedProvider] || styles.NOT_AVAILABLE
       }`}
     >

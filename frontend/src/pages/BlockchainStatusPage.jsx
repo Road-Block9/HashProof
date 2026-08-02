@@ -30,34 +30,34 @@ const BlockchainStatusPage = () => {
       label: "RPC Reachable",
       value: status?.rpcReachable ? "Yes" : "No",
       icon: Cable,
-      accent: "from-cyan-400 to-blue-600"
+      accent: "text-electricBlue"
     },
     {
       label: "Contract Configured",
       value: status?.contractConfigured ? "Yes" : "No",
       icon: Blocks,
-      accent: "from-purple-400 to-indigo-600"
+      accent: "text-neonPurple"
     },
     {
       label: "Network",
       value: status?.network ? `${status.network.name} (${status.network.chainId})` : "Not available",
       icon: Network,
-      accent: "from-emerald-400 to-teal-600"
+      accent: "text-emerald-400"
     }
   ];
 
   return (
-    <div className="space-y-6">
-      <section className="app-card-dark overflow-hidden">
-        <div className="relative">
-          <div className="absolute right-0 top-0 h-32 w-32 rounded-full bg-cyan-400/20 blur-3xl" />
-          <p className="text-sm font-semibold uppercase tracking-wide text-cyan-200">Local Hardhat Proof Layer</p>
-          <h1 className="mt-3 text-3xl font-black text-white">Blockchain Status</h1>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300">
+    <div className="space-y-8">
+      <section className="app-card overflow-hidden">
+        <div className="relative z-10">
+          <div className="absolute right-0 top-0 h-48 w-48 rounded-full bg-electricBlue/10 blur-[100px]" />
+          <h1 className="page-title">Local Hardhat Proof Layer</h1>
+          <h2 className="mt-4 text-2xl font-bold text-cryptoBlack">Blockchain Status</h2>
+          <p className="mt-4 max-w-2xl text-sm leading-7 text-gray-600">
             Check whether the backend can reach the local RPC node and the deployed DocumentRegistry contract.
           </p>
-          <div className="mt-5 flex flex-wrap items-center gap-3">
-            <LoadingButton loading={loading} type="button" onClick={fetchStatus}>
+          <div className="mt-6 flex flex-wrap items-center gap-4">
+            <LoadingButton loading={loading} type="button" onClick={fetchStatus} className="">
               Check Status
             </LoadingButton>
             {status && <BlockchainBadge status={status.configured ? "STORED" : "NOT_CONFIGURED"} />}
@@ -68,29 +68,29 @@ const BlockchainStatusPage = () => {
       {message && <StatusMessage type={message.type} message={message.text} />}
       {status?.message && <StatusMessage type="warning" message={status.message} />}
 
-      <section className="grid gap-4 md:grid-cols-3">
+      <section className="grid gap-6 md:grid-cols-3">
         {cards.map((card) => {
           const Icon = card.icon;
           return (
-            <div key={card.label} className="app-card">
-              <span className={`flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br ${card.accent} text-white shadow-lg`}>
-                <Icon size={22} aria-hidden="true" />
+            <div key={card.label} className="app-card flex flex-col items-start transition-colors">
+              <span className={`flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 shadow-inner ${card.accent}`}>
+                <Icon size={26} aria-hidden="true" />
               </span>
-              <p className="mt-4 text-sm font-semibold uppercase tracking-wide text-slate-500">{card.label}</p>
-              <p className="mt-2 text-xl font-black text-slate-950">{status ? card.value : "Check status"}</p>
+              <p className="mt-5 text-sm font-bold text-gray-600">{card.label}</p>
+              <p className="mt-2 text-2xl font-black text-cryptoBlack">{status ? card.value : "Check status"}</p>
             </div>
           );
         })}
       </section>
 
       <section className="app-card">
-        <div className="flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-100 text-indigo-700">
-            <Activity size={20} aria-hidden="true" />
+        <div className="flex items-start gap-4">
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-slate-100 shadow-inner text-neonPurple">
+            <Activity size={24} aria-hidden="true" />
           </span>
           <div>
-            <h2 className="text-lg font-bold text-slate-950">What This Means</h2>
-            <p className="muted-text">
+            <h2 className="text-lg font-black text-cryptoBlack">What This Means</h2>
+            <p className="muted-text mt-2">
               MongoDB remains the main database. Blockchain is used as the integrity proof layer for hash registration,
               version proof, and revocation proof.
             </p>

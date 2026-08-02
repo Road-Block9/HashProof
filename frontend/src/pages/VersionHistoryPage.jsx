@@ -42,79 +42,79 @@ const VersionHistoryPage = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <section className="app-card">
         <h1 className="page-title">Version History</h1>
-        <p className="muted-text mt-2">Enter a docId to view all uploaded versions in order.</p>
+        <p className="muted-text mt-3">Enter a docId to view all uploaded versions in order.</p>
 
-        <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4 md:flex-row md:items-end">
+        <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-5 md:flex-row md:items-end">
           <div className="flex-1">
             <FormField label="docId">
               <input className="app-input" value={docId} onChange={(event) => setDocId(event.target.value)} placeholder="DOC-..." required />
             </FormField>
           </div>
-          <LoadingButton loading={loading} type="submit">Fetch History</LoadingButton>
+          <LoadingButton loading={loading} type="submit" className="mb-1">Fetch History</LoadingButton>
         </form>
       </section>
 
       {message && <StatusMessage type={message.type} message={message.text} />}
 
       {document && (
-        <section className="app-card">
-          <h2 className="text-lg font-bold text-slate-950">{document.title}</h2>
-          <p className="mt-1 text-sm text-slate-600">
-            Current version: <span className="font-semibold">{document.currentVersion}</span> | Status:{" "}
-            <span className="font-semibold">{document.status}</span>
+        <section className="app-card border-neonPurple shadow-[0_0_15px_rgba(176,38,255,0.15)]">
+          <h2 className="text-xl font-black text-white">{document.title}</h2>
+          <p className="mt-2 text-sm text-slate-400">
+            Current version: <span className="font-bold text-electricBlue">{document.currentVersion}</span> | Status:{" "}
+            <span className="font-bold text-electricBlue">{document.status}</span>
           </p>
         </section>
       )}
 
       {versions.length > 0 && (
-        <section className="overflow-hidden rounded-2xl border border-white/15 bg-white/95 shadow-xl">
+        <section className="overflow-hidden rounded-3xl border border-white/5 bg-spaceCard shadow-neo-card">
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-slate-200 text-sm">
-              <thead className="bg-gradient-to-r from-indigo-950 to-cyan-800 text-left text-xs font-semibold uppercase tracking-wide text-cyan-50">
+            <table className="min-w-full divide-y divide-white/5 text-sm">
+              <thead className="bg-spaceBlack text-left text-xs font-bold uppercase tracking-widest text-electricBlue">
                 <tr>
-                  <th className="px-4 py-3">Version</th>
-                  <th className="px-4 py-3">File Name</th>
-                  <th className="px-4 py-3">Hash</th>
-                  <th className="px-4 py-3">Tx Hash</th>
-                  <th className="px-4 py-3">Storage</th>
-                  <th className="px-4 py-3">Upload Date</th>
-                  <th className="px-4 py-3">Blockchain Status</th>
+                  <th className="px-5 py-4">Version</th>
+                  <th className="px-5 py-4">File Name</th>
+                  <th className="px-5 py-4">Hash</th>
+                  <th className="px-5 py-4">Tx Hash</th>
+                  <th className="px-5 py-4">Storage</th>
+                  <th className="px-5 py-4">Upload Date</th>
+                  <th className="px-5 py-4">Blockchain Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-white/5">
                 {versions.map((version) => (
-                  <tr key={version._id} className="align-top">
-                    <td className="px-4 py-3 font-semibold text-slate-950">{version.versionNumber}</td>
-                    <td className="px-4 py-3 text-slate-700">{version.fileName}</td>
-                    <td className="px-4 py-3">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <code className="rounded bg-slate-100 px-2 py-1 text-xs">{shortHash(version.hash)}</code>
+                  <tr key={version._id} className="align-top hover:bg-spaceBlack/50 transition-colors duration-200">
+                    <td className="px-5 py-4 font-black text-neonPurple">{version.versionNumber}</td>
+                    <td className="px-5 py-4 text-slate-300 font-medium">{version.fileName}</td>
+                    <td className="px-5 py-4">
+                      <div className="flex flex-wrap items-center gap-3">
+                        <code className="rounded-lg bg-spaceBlack border border-white/5 px-2 py-1 text-xs shadow-neo-in text-slate-300">{shortHash(version.hash)}</code>
                         <CopyButton value={version.hash} label="Copy" />
                       </div>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-5 py-4">
                       {version.blockchainTxHash ? (
-                        <div className="flex flex-wrap items-center gap-2">
-                          <code className="rounded bg-cyan-50 px-2 py-1 text-xs text-cyan-900">{shortValue(version.blockchainTxHash)}</code>
+                        <div className="flex flex-wrap items-center gap-3">
+                          <code className="rounded-lg bg-spaceBlack border border-neonPurple/20 px-2 py-1 text-xs text-neonPurple shadow-neo-in">{shortValue(version.blockchainTxHash)}</code>
                           <CopyButton value={version.blockchainTxHash} label="Copy tx" />
                         </div>
                       ) : (
-                        <span className="text-slate-500">Not available</span>
+                        <span className="text-slate-500 font-bold">Not available</span>
                       )}
                     </td>
-                    <td className="px-4 py-3">
-                      <div className="grid gap-1">
+                    <td className="px-5 py-4">
+                      <div className="grid gap-2">
                         <StorageBadge provider={version.storageProvider} />
                         {version.storageProvider && (
-                          <span className="text-xs font-semibold text-slate-500">{version.storageProvider}</span>
+                          <span className="text-xs font-bold text-slate-500 block pl-1">{version.storageProvider}</span>
                         )}
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-slate-700">{formatDate(version.createdAt)}</td>
-                    <td className="px-4 py-3">
+                    <td className="px-5 py-4 text-slate-400">{formatDate(version.createdAt)}</td>
+                    <td className="px-5 py-4">
                       <BlockchainBadge status={version.blockchainStatus} />
                     </td>
                   </tr>

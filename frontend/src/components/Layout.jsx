@@ -2,9 +2,20 @@ import Navbar from "./Navbar.jsx";
 
 const Layout = ({ children }) => {
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(34,211,238,0.22),_transparent_34%),radial-gradient(circle_at_top_right,_rgba(168,85,247,0.2),_transparent_30%),linear-gradient(135deg,#07111f_0%,#111827_45%,#312e81_100%)]">
-      <Navbar />
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">{children}</main>
+    <div className="min-h-screen bg-cryptoBeige relative overflow-hidden flex items-center justify-center p-4 sm:p-8 md:p-12">
+      {/* The Massive Main Container */}
+      <div className="relative w-full max-w-[1400px] min-h-[85vh] rounded-[40px] overflow-hidden shadow-crypto-container flex flex-col bg-cryptoBlack">
+        
+        {/* The Two-Tone Split: Top Half Golden-Yellow */}
+        <div className="absolute top-0 left-0 w-full h-[55%] bg-cryptoYellow z-0 pointer-events-none"></div>
+
+        <div className="relative z-10 flex flex-col flex-1">
+          <Navbar />
+          <main className="mx-auto w-full max-w-7xl px-6 py-10 sm:px-8 lg:px-12 flex-1">
+            {children}
+          </main>
+        </div>
+      </div>
     </div>
   );
 };
