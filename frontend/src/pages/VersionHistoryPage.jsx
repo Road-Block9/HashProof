@@ -6,6 +6,7 @@ import LoadingButton from "../components/LoadingButton.jsx";
 import StatusMessage from "../components/StatusMessage.jsx";
 import BlockchainBadge from "../components/BlockchainBadge.jsx";
 import StorageBadge from "../components/StorageBadge.jsx";
+import LifecycleBadge from "../components/LifecycleBadge.jsx";
 
 const shortHash = (hash) => (hash ? `${hash.slice(0, 12)}...${hash.slice(-8)}` : "Not available");
 const shortValue = (value) => (value ? `${value.slice(0, 12)}...${value.slice(-8)}` : "Not available");
@@ -70,10 +71,10 @@ const VersionHistoryPage = () => {
       )}
 
       {versions.length > 0 && (
-        <section className="overflow-hidden rounded-3xl border border-white/5 bg-spaceCard shadow-neo-card">
+        <section className="overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-xl">
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-white/5 text-sm">
-              <thead className="bg-spaceBlack text-left text-xs font-bold uppercase tracking-widest text-electricBlue">
+            <table className="min-w-full divide-y divide-gray-200 text-sm">
+              <thead className="bg-gray-50 text-left text-xs font-bold uppercase tracking-widest text-indigo-600">
                 <tr>
                   <th className="px-5 py-4">Version</th>
                   <th className="px-5 py-4">File Name</th>
@@ -81,39 +82,43 @@ const VersionHistoryPage = () => {
                   <th className="px-5 py-4">Tx Hash</th>
                   <th className="px-5 py-4">Storage</th>
                   <th className="px-5 py-4">Upload Date</th>
+                  <th className="px-5 py-4">Lifecycle</th>
                   <th className="px-5 py-4">Blockchain Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5">
+              <tbody className="divide-y divide-gray-200">
                 {versions.map((version) => (
-                  <tr key={version._id} className="align-top hover:bg-spaceBlack/50 transition-colors duration-200">
-                    <td className="px-5 py-4 font-black text-neonPurple">{version.versionNumber}</td>
-                    <td className="px-5 py-4 text-slate-300 font-medium">{version.fileName}</td>
+                  <tr key={version._id} className="align-top hover:bg-gray-50 transition-colors duration-200">
+                    <td className="px-5 py-4 font-black text-indigo-600">{version.versionNumber}</td>
+                    <td className="px-5 py-4 text-gray-800 font-medium">{version.fileName}</td>
                     <td className="px-5 py-4">
                       <div className="flex flex-wrap items-center gap-3">
-                        <code className="rounded-lg bg-spaceBlack border border-white/5 px-2 py-1 text-xs shadow-neo-in text-slate-300">{shortHash(version.hash)}</code>
+                        <code className="rounded-lg bg-gray-100 border border-gray-200 px-2 py-1 text-xs text-gray-600">{shortHash(version.hash)}</code>
                         <CopyButton value={version.hash} label="Copy" />
                       </div>
                     </td>
                     <td className="px-5 py-4">
                       {version.blockchainTxHash ? (
                         <div className="flex flex-wrap items-center gap-3">
-                          <code className="rounded-lg bg-spaceBlack border border-neonPurple/20 px-2 py-1 text-xs text-neonPurple shadow-neo-in">{shortValue(version.blockchainTxHash)}</code>
+                          <code className="rounded-lg bg-indigo-50 border border-indigo-100 px-2 py-1 text-xs text-indigo-600">{shortValue(version.blockchainTxHash)}</code>
                           <CopyButton value={version.blockchainTxHash} label="Copy tx" />
                         </div>
                       ) : (
-                        <span className="text-slate-500 font-bold">Not available</span>
+                        <span className="text-gray-500 font-bold">Not available</span>
                       )}
                     </td>
                     <td className="px-5 py-4">
                       <div className="grid gap-2">
                         <StorageBadge provider={version.storageProvider} />
                         {version.storageProvider && (
-                          <span className="text-xs font-bold text-slate-500 block pl-1">{version.storageProvider}</span>
+                          <span className="text-xs font-bold text-gray-500 block pl-1">{version.storageProvider}</span>
                         )}
                       </div>
                     </td>
-                    <td className="px-5 py-4 text-slate-400">{formatDate(version.createdAt)}</td>
+                    <td className="px-5 py-4 text-gray-600">{formatDate(version.createdAt)}</td>
+                    <td className="px-5 py-4">
+                      <LifecycleBadge state={version.lifecycleState} />
+                    </td>
                     <td className="px-5 py-4">
                       <BlockchainBadge status={version.blockchainStatus} />
                     </td>

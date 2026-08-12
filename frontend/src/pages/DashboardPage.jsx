@@ -91,11 +91,11 @@ const DashboardPage = () => {
     },
     online: {
       label: "Blockchain Online",
-      className: "bg-cryptoBlack text-white"
+      className: "bg-cryptoBlack text-green-500"
     },
     offline: {
       label: "Blockchain Offline",
-      className: "bg-red-500 text-white"
+      className: "bg-cryptoBlack text-red-500"
     }
   }[blockchainState];
 
@@ -115,18 +115,6 @@ const DashboardPage = () => {
           Privacy-preserving document authentication with blockchain-backed verification, selective disclosure, version-aware lifecycle management, and immutable audit trails.
         </p>
         <div className="mt-10 flex flex-wrap justify-center gap-4 relative z-30">
-          <Link
-            to="/upload"
-            className="btn-pill"
-          >
-            Upload Document
-          </Link>
-          <Link
-            to="/verify"
-            className="btn-pill-white"
-          >
-            Verify Document
-          </Link>
           <Link
             to="/blockchain-status"
             className={`rounded-full px-8 py-3.5 font-bold shadow-lg transition-transform hover:scale-105 active:scale-95 ${blockchainButton.className}`}
