@@ -18,6 +18,12 @@ const documentSchema = new mongoose.Schema(
       trim: true,
       default: ""
     },
+    documentType: {
+      type: String,
+      required: true,
+      default: "Other",
+      trim: true
+    },
     issuerName: {
       type: String,
       required: true,

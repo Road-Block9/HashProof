@@ -12,6 +12,15 @@ const revocationSchema = new mongoose.Schema(
       required: true,
       trim: true
     },
+    version: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Version",
+      required: false // Optional for backward compatibility with global revocations
+    },
+    versionNumber: {
+      type: Number,
+      required: false
+    },
     reason: {
       type: String,
       required: true,
@@ -41,5 +50,8 @@ const revocationSchema = new mongoose.Schema(
     timestamps: true
   }
 );
+
+revocationSchema.index({ docId: 1 });
+revocationSchema.index({ docId: 1, versionNumber: 1 });
 
 module.exports = mongoose.model("Revocation", revocationSchema);

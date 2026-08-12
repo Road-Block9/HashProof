@@ -46,6 +46,10 @@ const versionSchema = new mongoose.Schema(
       required: true,
       index: true
     },
+    merkleRoot: {
+      type: String,
+      default: null
+    },
     blockchainTxHash: {
       type: String,
       default: null
@@ -54,6 +58,19 @@ const versionSchema = new mongoose.Schema(
       type: String,
       enum: ["PENDING", "STORED", "FAILED", "NOT_CONFIGURED"],
       default: "PENDING"
+    },
+    lifecycleState: {
+      type: String,
+      enum: ["Draft", "Issued", "Verified", "Superseded", "Revoked"],
+      default: "Issued"
+    },
+    verifiedAt: {
+      type: Date,
+      default: null
+    },
+    supersededAt: {
+      type: Date,
+      default: null
     }
   },
   {

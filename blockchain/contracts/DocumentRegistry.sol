@@ -5,6 +5,7 @@ contract DocumentRegistry {
     struct DocumentVersion {
         string docId;
         string fileHash;
+        string merkleRoot;
         uint256 versionNumber;
         address issuer;
         uint256 timestamp;
@@ -21,12 +22,14 @@ contract DocumentRegistry {
 
     mapping(string => DocumentVersion[]) private documentVersions;
     mapping(string => RevocationDetails) private revocations;
+    mapping(string => mapping(uint256 => RevocationDetails)) private versionRevocations;
     mapping(string => uint256) private latestVersionNumbers;
     mapping(string => bool) private revokedDocuments;
 
     event DocumentVersionRegistered(
         string docId,
         string fileHash,
+        string merkleRoot,
         uint256 versionNumber,
         address indexed issuer,
         uint256 timestamp
@@ -39,13 +42,23 @@ contract DocumentRegistry {
         uint256 revokedAt
     );
 
+    event DocumentVersionRevoked(
+        string docId,
+        uint256 versionNumber,
+        string reason,
+        address indexed revokedBy,
+        uint256 revokedAt
+    );
+
     function registerDocumentVersion(
         string memory docId,
         string memory fileHash,
+        string memory merkleRoot,
         uint256 versionNumber
     ) external {
         require(bytes(docId).length > 0, "docId is required");
         require(bytes(fileHash).length > 0, "fileHash is required");
+        require(bytes(merkleRoot).length > 0, "merkleRoot is required");
         require(versionNumber > 0, "versionNumber must be greater than zero");
         require(!revokedDocuments[docId], "Document is revoked");
 
@@ -56,6 +69,7 @@ contract DocumentRegistry {
             DocumentVersion({
                 docId: docId,
                 fileHash: fileHash,
+                merkleRoot: merkleRoot,
                 versionNumber: versionNumber,
                 issuer: msg.sender,
                 timestamp: block.timestamp,
@@ -68,6 +82,7 @@ contract DocumentRegistry {
         emit DocumentVersionRegistered(
             docId,
             fileHash,
+            merkleRoot,
             versionNumber,
             msg.sender,
             block.timestamp
@@ -91,6 +106,7 @@ contract DocumentRegistry {
         returns (
             string memory,
             string memory,
+            string memory,
             uint256,
             address,
             uint256,
@@ -105,6 +121,7 @@ contract DocumentRegistry {
         return (
             documentVersion.docId,
             documentVersion.fileHash,
+            documentVersion.merkleRoot,
             documentVersion.versionNumber,
             documentVersion.issuer,
             documentVersion.timestamp,
@@ -132,6 +149,26 @@ contract DocumentRegistry {
         }
 
         emit DocumentRevoked(docId, reason, msg.sender, block.timestamp);
+    }
+
+    function revokeDocumentVersion(string memory docId, uint256 versionNumber, string memory reason) external {
+        require(bytes(docId).length > 0, "docId is required");
+        require(bytes(reason).length > 0, "reason is required");
+        require(versionNumber > 0, "versionNumber must be greater than zero");
+        require(versionNumber <= documentVersions[docId].length, "Version not found");
+        require(!documentVersions[docId][versionNumber - 1].isRevoked, "Version already revoked");
+
+        documentVersions[docId][versionNumber - 1].isRevoked = true;
+        
+        versionRevocations[docId][versionNumber] = RevocationDetails({
+            docId: docId,
+            reason: reason,
+            revokedBy: msg.sender,
+            revokedAt: block.timestamp,
+            isRevoked: true
+        });
+
+        emit DocumentVersionRevoked(docId, versionNumber, reason, msg.sender, block.timestamp);
     }
 
     function getRevocationDetails(
@@ -162,6 +199,31 @@ contract DocumentRegistry {
         return revokedDocuments[docId];
     }
 
+    function getVersionRevocationDetails(
+        string memory docId,
+        uint256 versionNumber
+    )
+        external
+        view
+        returns (
+            string memory,
+            string memory,
+            address,
+            uint256,
+            bool
+        )
+    {
+        RevocationDetails memory details = versionRevocations[docId][versionNumber];
+
+        return (
+            details.docId,
+            details.reason,
+            details.revokedBy,
+            details.revokedAt,
+            details.isRevoked
+        );
+    }
+
     function verifyDocument(
         string memory docId,
         string memory fileHash
@@ -175,8 +237,7 @@ contract DocumentRegistry {
             string memory
         )
     {
-        bool revoked = revokedDocuments[docId];
-        string memory revocationReason = revoked ? revocations[docId].reason : "";
+        bool globallyRevoked = revokedDocuments[docId];
 
         for (uint256 i = 0; i < documentVersions[docId].length; i++) {
             bool hashMatches =
@@ -184,15 +245,27 @@ contract DocumentRegistry {
                 keccak256(bytes(fileHash));
 
             if (hashMatches) {
+                bool isVersionRevoked = globallyRevoked || documentVersions[docId][i].isRevoked;
+                string memory revocationReason = "";
+                
+                if (isVersionRevoked) {
+                    if (documentVersions[docId][i].isRevoked && versionRevocations[docId][documentVersions[docId][i].versionNumber].isRevoked) {
+                        revocationReason = versionRevocations[docId][documentVersions[docId][i].versionNumber].reason;
+                    } else if (globallyRevoked) {
+                        revocationReason = revocations[docId].reason;
+                    }
+                }
+
                 return (
                     true,
                     documentVersions[docId][i].versionNumber,
-                    revoked,
+                    isVersionRevoked,
                     revocationReason
                 );
             }
         }
 
-        return (false, 0, revoked, revocationReason);
+        string memory globalRevocationReason = globallyRevoked ? revocations[docId].reason : "";
+        return (false, 0, globallyRevoked, globalRevocationReason);
     }
 }

@@ -15,14 +15,14 @@ const getCleanErrorMessage = (error) => {
   return error.shortMessage || error.reason || error.message || "Blockchain operation failed";
 };
 
-const registerDocumentVersion = async ({ docId, fileHash, versionNumber }) => {
+const registerDocumentVersion = async ({ docId, fileHash, merkleRoot, versionNumber }) => {
   if (!isBlockchainConfigured()) {
     return notConfiguredResult;
   }
 
   try {
     const contract = getDocumentRegistryContract();
-    const tx = await contract.registerDocumentVersion(docId, fileHash, versionNumber);
+    const tx = await contract.registerDocumentVersion(docId, fileHash, merkleRoot, versionNumber);
     const receipt = await tx.wait();
 
     return {
@@ -57,6 +57,31 @@ const revokeDocument = async ({ docId, reason }) => {
     };
   } catch (error) {
     console.error("Blockchain revoke failed:", getCleanErrorMessage(error));
+    return {
+      success: false,
+      status: "FAILED",
+      message: getCleanErrorMessage(error)
+    };
+  }
+};
+
+const revokeDocumentVersion = async ({ docId, versionNumber, reason }) => {
+  if (!isBlockchainConfigured()) {
+    return notConfiguredResult;
+  }
+
+  try {
+    const contract = getDocumentRegistryContract();
+    const tx = await contract.revokeDocumentVersion(docId, versionNumber, reason);
+    const receipt = await tx.wait();
+
+    return {
+      success: true,
+      status: "STORED",
+      txHash: receipt.hash || tx.hash
+    };
+  } catch (error) {
+    console.error("Blockchain version revoke failed:", getCleanErrorMessage(error));
     return {
       success: false,
       status: "FAILED",
@@ -132,9 +157,32 @@ const getStatus = async () => {
   }
 };
 
+const getDocumentMerkleRoot = async (docId, versionNumber) => {
+  if (!isBlockchainConfigured()) {
+    return notConfiguredResult;
+  }
+
+  try {
+    const contract = getDocumentRegistryContract();
+    const result = await contract.getVersionDetails(docId, versionNumber);
+    return {
+      success: true,
+      merkleRoot: result[2]
+    };
+  } catch (error) {
+    console.error("Blockchain get version details failed:", getCleanErrorMessage(error));
+    return {
+      success: false,
+      message: getCleanErrorMessage(error)
+    };
+  }
+};
+
 module.exports = {
   registerDocumentVersion,
   revokeDocument,
+  revokeDocumentVersion,
   verifyDocument,
-  getStatus
+  getStatus,
+  getDocumentMerkleRoot
 };
